@@ -13,6 +13,13 @@ var (
 	ErrUnkownType   = errors.New("Unknown type")
 )
 
+type CustomerType int32
+
+const (
+	Private CustomerType = iota + 1
+	Organization
+)
+
 func New(id uint64, info CustomerInfo) (Customer, error) {
 	switch i := info.(type) {
 	case PersonInfo:
@@ -36,6 +43,7 @@ func New(id uint64, info CustomerInfo) (Customer, error) {
 
 type Customer interface {
 	ID() uint64
+	Type() CustomerType
 	Info() CustomerInfo
 	Addresses() []*Address
 	ContactInfos() []ContactInfo
@@ -107,7 +115,7 @@ func (o *organization) TaxInfos() []*TaxInfo {
 }
 
 type CustomerInfo interface {
-	IsCustomerInfo()
+	Type() CustomerType
 }
 
 type PersonInfo struct {
@@ -118,7 +126,9 @@ type PersonInfo struct {
 	Citizenship CountryCode
 }
 
-func (p PersonInfo) IsCustomerInfo()
+func (pi PersonInfo) Type() CustomerType {
+	return Private
+}
 
 type OrganizationInfo struct {
 	Name                string
@@ -128,12 +138,14 @@ type OrganizationInfo struct {
 	RegistrationCountry CountryCode
 }
 
-func (o OrganizationInfo) IsCustomerInfo()
+func (oi OrganizationInfo) Type() CustomerType {
+	return Organization
+}
 
 type Address interface {
 	Street() string
-	City() string
 	PostalCode() string
+	City() string
 	Country() string
 }
 
@@ -162,11 +174,11 @@ func (a *address) Country() string {
 func NewContactInfo(ct ContactType, value string) (ContactInfo, error) {
 	switch ct {
 	case ContactTypeMobile:
-		return Mobile{value}, nil
+		return newMobile(value)
 	case ContactTypePhone:
-		return Phone{value}, nil
+		return newPhone(value)
 	case ContactTypeEmail:
-		return Email{value}, nil
+		return newEmail(value)
 	default:
 		return nil, errors.Wrap(ErrUnkownType, "customer.NewContactInfo")
 	}
@@ -188,31 +200,31 @@ const (
 
 var phoneRegex = regexp.MustCompile(`^\+?([0-9]+)$`)
 
-func NewMobile(number string) (Mobile, error) {
+func newMobile(number string) (*mobile, error) {
 	s := strings.Trim(number, " ")
 
 	ok := phoneRegex.MatchString(s)
 	if !ok {
-		return Mobile{}, errors.Wrap(ErrInvalidValue, "customer.NewMobile")
+		return nil, errors.Wrap(ErrInvalidValue, "customer.NewMobile")
 	}
 
-	return Mobile{Number: s}, nil
+	return &mobile{num: s}, nil
 }
 
-type Mobile struct {
-	Number string
+type mobile struct {
+	num string
 }
 
-func (m Mobile) Value() string {
-	return m.Number
+func (m *mobile) Value() string {
+	return m.num
 }
 
-func (m Mobile) Type() ContactType {
+func (m *mobile) Type() ContactType {
 	return ContactTypeMobile
 }
 
-func (m Mobile) Validate() error {
-	ok := phoneRegex.MatchString(m.Number)
+func (m *mobile) Validate() error {
+	ok := phoneRegex.MatchString(m.num)
 	if !ok {
 		return errors.Wrap(ErrInvalidValue, "customer.Mobile.Validate")
 	}
@@ -220,28 +232,28 @@ func (m Mobile) Validate() error {
 
 }
 
-func NewPhone(number string) (Phone, error) {
+func newPhone(number string) (*phone, error) {
 	ok := phoneRegex.MatchString(number)
 	if !ok {
-		return Phone{}, errors.Wrap(ErrInvalidValue, "customer.NewPhone")
+		return nil, errors.Wrap(ErrInvalidValue, "customer.NewPhone")
 	}
-	return Phone{Number: number}, nil
+	return &phone{num: number}, nil
 }
 
-type Phone struct {
-	Number string
+type phone struct {
+	num string
 }
 
-func (p Phone) Value() string {
-	return p.Number
+func (p *phone) Value() string {
+	return p.num
 }
 
-func (p Phone) Type() ContactType {
+func (p *phone) Type() ContactType {
 	return ContactTypePhone
 }
 
-func (p Phone) Validate() error {
-	ok := phoneRegex.MatchString(p.Number)
+func (p *phone) Validate() error {
+	ok := phoneRegex.MatchString(p.num)
 	if !ok {
 		return errors.Wrap(ErrInvalidValue, "customer.Phone.Validate")
 	}
@@ -251,37 +263,59 @@ func (p Phone) Validate() error {
 
 var emailRegexp = regexp.MustCompile("^(?:(?:(?:(?:[a-zA-Z]|\\d|[!#\\$%&'\\*\\+\\-\\/=\\?\\^_`{\\|}~]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])+(?:\\.([a-zA-Z]|\\d|[!#\\$%&'\\*\\+\\-\\/=\\?\\^_`{\\|}~]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])+)*)|(?:(?:\\x22)(?:(?:(?:(?:\\x20|\\x09)*(?:\\x0d\\x0a))?(?:\\x20|\\x09)+)?(?:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]|\\x21|[\\x23-\\x5b]|[\\x5d-\\x7e]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(?:(?:[\\x01-\\x09\\x0b\\x0c\\x0d-\\x7f]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}]))))*(?:(?:(?:\\x20|\\x09)*(?:\\x0d\\x0a))?(\\x20|\\x09)+)?(?:\\x22))))@(?:(?:(?:[a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(?:(?:[a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])(?:[a-zA-Z]|\\d|-|\\.|~|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])*(?:[a-zA-Z]|\\d|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])))\\.)+(?:(?:[a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])|(?:(?:[a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])(?:[a-zA-Z]|\\d|-|\\.|~|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])*(?:[a-zA-Z]|[\\x{00A0}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFEF}])))\\.?$")
 
-func NewEmail(address string) (Email, error) {
+func newEmail(address string) (*email, error) {
 	ok := emailRegexp.MatchString(address)
 	if !ok {
-		return Email{}, errors.Wrap(ErrInvalidValue, "customer.NewEmail")
+		return nil, errors.Wrap(ErrInvalidValue, "customer.NewEmail")
 	}
-	return Email{Address: address}, nil
+	return &email{addr: address}, nil
 }
 
-type Email struct {
-	Address string
+type email struct {
+	addr string
 }
 
-func (e Email) Value() string {
-	return e.Address
+func (e *email) Value() string {
+	return e.addr
 }
 
-func (e Email) Type() ContactType {
+func (e *email) Type() ContactType {
 	return ContactTypePhone
 }
 
-func (e Email) Validate() error {
-	ok := emailRegexp.MatchString(e.Address)
+func (e *email) Validate() error {
+	ok := emailRegexp.MatchString(e.addr)
 	if !ok {
 		return errors.Wrap(ErrInvalidValue, "customer.Email.Validate")
 	}
 	return nil
 }
 
-type TaxInfo struct {
-	TaxCountry CountryCode
-	TaxId      string
+type TaxInfo interface {
+	Country() string
+	CountryCode() CountryCode
+	TaxId() string
+}
+
+func NewTaxInfo(cc CountryCode, id string) TaxInfo {
+	return &tax{cc, id}
+}
+
+type tax struct {
+	cc CountryCode
+	id string
+}
+
+func (t *tax) Country() string {
+	return t.cc.Country()
+}
+
+func (t *tax) CountryCode() CountryCode {
+	return t.cc
+}
+
+func (t *tax) TaxId() string {
+	return t.id
 }
 
 type CountryCode int32
