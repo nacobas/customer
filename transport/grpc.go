@@ -10,19 +10,19 @@ type grpcServer struct {
 	pb.UnimplementedCustomerRegistryServer
 }
 
-func (gs *grpcServer) Get(context.Context, *pb.GetCustomerRequest) (*pb.GetCustomerResponse, error) {
+func (gs *grpcServer) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, error) {
 	return nil, nil
 }
 
-func (gs *grpcServer) New(context.Context, *pb.NewCustomerRequest) (*pb.NewCustomerResponse, error) {
+func (gs *grpcServer) New(ctx context.Context, req *pb.NewRequest) (*pb.NewResponse, error) {
 	return nil, nil
 }
 
-func (gs *grpcServer) Update(context.Context, *pb.UpdateCustomerRequest) (*pb.UpdateCustomerResponse, error) {
+func (gs *grpcServer) Update(ctx context.Context, req *pb.UpdateInfoRequest) (*pb.UpdateInfoResponse, error) {
 	return nil, nil
 }
 
-func (gs *grpcServer) Close(context.Context, *pb.DeleteCustomerRequest) (*pb.DeleteCustomerResponse, error) {
+func (gs *grpcServer) SetState(ctx context.Context, req *pb.SetStateRequest) (*pb.SetStateResponse, error) {
 	return nil, nil
 }
 

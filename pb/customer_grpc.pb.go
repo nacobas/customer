@@ -18,10 +18,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CustomerRegistryClient interface {
-	New(ctx context.Context, in *NewCustomerRequest, opts ...grpc.CallOption) (*NewCustomerResponse, error)
-	Get(ctx context.Context, in *GetCustomerRequest, opts ...grpc.CallOption) (*GetCustomerResponse, error)
-	Update(ctx context.Context, in *UpdateCustomerRequest, opts ...grpc.CallOption) (*UpdateCustomerResponse, error)
-	Delete(ctx context.Context, in *DeleteCustomerRequest, opts ...grpc.CallOption) (*DeleteCustomerResponse, error)
+	New(ctx context.Context, in *NewRequest, opts ...grpc.CallOption) (*NewResponse, error)
+	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
+	UpdateInfo(ctx context.Context, in *UpdateInfoRequest, opts ...grpc.CallOption) (*UpdateInfoRequest, error)
+	SetState(ctx context.Context, in *SetStateRequest, opts ...grpc.CallOption) (*SetStateResponse, error)
 }
 
 type customerRegistryClient struct {
@@ -32,8 +32,8 @@ func NewCustomerRegistryClient(cc grpc.ClientConnInterface) CustomerRegistryClie
 	return &customerRegistryClient{cc}
 }
 
-func (c *customerRegistryClient) New(ctx context.Context, in *NewCustomerRequest, opts ...grpc.CallOption) (*NewCustomerResponse, error) {
-	out := new(NewCustomerResponse)
+func (c *customerRegistryClient) New(ctx context.Context, in *NewRequest, opts ...grpc.CallOption) (*NewResponse, error) {
+	out := new(NewResponse)
 	err := c.cc.Invoke(ctx, "/CustomerRegistry/New", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -41,8 +41,8 @@ func (c *customerRegistryClient) New(ctx context.Context, in *NewCustomerRequest
 	return out, nil
 }
 
-func (c *customerRegistryClient) Get(ctx context.Context, in *GetCustomerRequest, opts ...grpc.CallOption) (*GetCustomerResponse, error) {
-	out := new(GetCustomerResponse)
+func (c *customerRegistryClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error) {
+	out := new(GetResponse)
 	err := c.cc.Invoke(ctx, "/CustomerRegistry/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -50,18 +50,18 @@ func (c *customerRegistryClient) Get(ctx context.Context, in *GetCustomerRequest
 	return out, nil
 }
 
-func (c *customerRegistryClient) Update(ctx context.Context, in *UpdateCustomerRequest, opts ...grpc.CallOption) (*UpdateCustomerResponse, error) {
-	out := new(UpdateCustomerResponse)
-	err := c.cc.Invoke(ctx, "/CustomerRegistry/Update", in, out, opts...)
+func (c *customerRegistryClient) UpdateInfo(ctx context.Context, in *UpdateInfoRequest, opts ...grpc.CallOption) (*UpdateInfoRequest, error) {
+	out := new(UpdateInfoRequest)
+	err := c.cc.Invoke(ctx, "/CustomerRegistry/UpdateInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *customerRegistryClient) Delete(ctx context.Context, in *DeleteCustomerRequest, opts ...grpc.CallOption) (*DeleteCustomerResponse, error) {
-	out := new(DeleteCustomerResponse)
-	err := c.cc.Invoke(ctx, "/CustomerRegistry/Delete", in, out, opts...)
+func (c *customerRegistryClient) SetState(ctx context.Context, in *SetStateRequest, opts ...grpc.CallOption) (*SetStateResponse, error) {
+	out := new(SetStateResponse)
+	err := c.cc.Invoke(ctx, "/CustomerRegistry/SetState", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -72,10 +72,10 @@ func (c *customerRegistryClient) Delete(ctx context.Context, in *DeleteCustomerR
 // All implementations must embed UnimplementedCustomerRegistryServer
 // for forward compatibility
 type CustomerRegistryServer interface {
-	New(context.Context, *NewCustomerRequest) (*NewCustomerResponse, error)
-	Get(context.Context, *GetCustomerRequest) (*GetCustomerResponse, error)
-	Update(context.Context, *UpdateCustomerRequest) (*UpdateCustomerResponse, error)
-	Delete(context.Context, *DeleteCustomerRequest) (*DeleteCustomerResponse, error)
+	New(context.Context, *NewRequest) (*NewResponse, error)
+	Get(context.Context, *GetRequest) (*GetResponse, error)
+	UpdateInfo(context.Context, *UpdateInfoRequest) (*UpdateInfoRequest, error)
+	SetState(context.Context, *SetStateRequest) (*SetStateResponse, error)
 	mustEmbedUnimplementedCustomerRegistryServer()
 }
 
@@ -83,17 +83,17 @@ type CustomerRegistryServer interface {
 type UnimplementedCustomerRegistryServer struct {
 }
 
-func (UnimplementedCustomerRegistryServer) New(context.Context, *NewCustomerRequest) (*NewCustomerResponse, error) {
+func (UnimplementedCustomerRegistryServer) New(context.Context, *NewRequest) (*NewResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method New not implemented")
 }
-func (UnimplementedCustomerRegistryServer) Get(context.Context, *GetCustomerRequest) (*GetCustomerResponse, error) {
+func (UnimplementedCustomerRegistryServer) Get(context.Context, *GetRequest) (*GetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-func (UnimplementedCustomerRegistryServer) Update(context.Context, *UpdateCustomerRequest) (*UpdateCustomerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+func (UnimplementedCustomerRegistryServer) UpdateInfo(context.Context, *UpdateInfoRequest) (*UpdateInfoRequest, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateInfo not implemented")
 }
-func (UnimplementedCustomerRegistryServer) Delete(context.Context, *DeleteCustomerRequest) (*DeleteCustomerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+func (UnimplementedCustomerRegistryServer) SetState(context.Context, *SetStateRequest) (*SetStateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetState not implemented")
 }
 func (UnimplementedCustomerRegistryServer) mustEmbedUnimplementedCustomerRegistryServer() {}
 
@@ -109,7 +109,7 @@ func RegisterCustomerRegistryServer(s grpc.ServiceRegistrar, srv CustomerRegistr
 }
 
 func _CustomerRegistry_New_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(NewCustomerRequest)
+	in := new(NewRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -121,13 +121,13 @@ func _CustomerRegistry_New_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: "/CustomerRegistry/New",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CustomerRegistryServer).New(ctx, req.(*NewCustomerRequest))
+		return srv.(CustomerRegistryServer).New(ctx, req.(*NewRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _CustomerRegistry_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetCustomerRequest)
+	in := new(GetRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -139,43 +139,43 @@ func _CustomerRegistry_Get_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: "/CustomerRegistry/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CustomerRegistryServer).Get(ctx, req.(*GetCustomerRequest))
+		return srv.(CustomerRegistryServer).Get(ctx, req.(*GetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CustomerRegistry_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateCustomerRequest)
+func _CustomerRegistry_UpdateInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CustomerRegistryServer).Update(ctx, in)
+		return srv.(CustomerRegistryServer).UpdateInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/CustomerRegistry/Update",
+		FullMethod: "/CustomerRegistry/UpdateInfo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CustomerRegistryServer).Update(ctx, req.(*UpdateCustomerRequest))
+		return srv.(CustomerRegistryServer).UpdateInfo(ctx, req.(*UpdateInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CustomerRegistry_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteCustomerRequest)
+func _CustomerRegistry_SetState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetStateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CustomerRegistryServer).Delete(ctx, in)
+		return srv.(CustomerRegistryServer).SetState(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/CustomerRegistry/Delete",
+		FullMethod: "/CustomerRegistry/SetState",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CustomerRegistryServer).Delete(ctx, req.(*DeleteCustomerRequest))
+		return srv.(CustomerRegistryServer).SetState(ctx, req.(*SetStateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -196,12 +196,12 @@ var CustomerRegistry_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CustomerRegistry_Get_Handler,
 		},
 		{
-			MethodName: "Update",
-			Handler:    _CustomerRegistry_Update_Handler,
+			MethodName: "UpdateInfo",
+			Handler:    _CustomerRegistry_UpdateInfo_Handler,
 		},
 		{
-			MethodName: "Delete",
-			Handler:    _CustomerRegistry_Delete_Handler,
+			MethodName: "SetState",
+			Handler:    _CustomerRegistry_SetState_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

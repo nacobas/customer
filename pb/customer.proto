@@ -4,61 +4,60 @@ option go_package = "github.com/nacobas/customer/pb";
 
 
 service CustomerRegistry {
-    rpc New(NewCustomerRequest) returns (NewCustomerResponse) {}
-    rpc Get(GetCustomerRequest) returns (GetCustomerResponse) {}
-    rpc Update(UpdateCustomerRequest) returns (UpdateCustomerResponse) {}
-    rpc Delete(DeleteCustomerRequest) returns (DeleteCustomerResponse) {}
+    rpc New(NewRequest) returns (NewResponse) {}
+    rpc Get(GetRequest) returns (GetResponse) {}
+    rpc UpdateInfo(UpdateInfoRequest) returns (UpdateInfoRequest) {}
+    rpc SetState(SetStateRequest) returns (SetStateResponse) {}
 }
 
-message NewCustomerRequest {
+message NewRequest {
     oneof customer_info {
         PersonInfo person_info = 1;
         OrganizationInfo organization_info = 2;
     }
 }
 
-message NewCustomerResponse {
-    string id = 1;
+message NewResponse {
+    Customer customer = 1;
+}
+
+message GetRequest {
+    uint32 customer_id = 1;
+}
+
+message GetResponse {
+    Customer customer = 1;
+}
+
+message UpdateInfoRequest {
+    uint32 customer_id = 1;
     oneof customer_info {
         PersonInfo person_info = 2;
         OrganizationInfo organization_info = 3;
     }
 }
 
-message GetCustomerRequest {
-    string id = 1;
+message UpdateInfoResponse {
+    Customer customer = 1;
 }
 
-message GetCustomerResponse {
-    string id = 1;
-    oneof customer_info {
-        PersonInfo person_info = 2;
-        OrganizationInfo organization_info = 3;
-    }
+message SetStateRequest {
+    uint32 customer_id = 1;
+    State state = 2;
 }
 
-message UpdateCustomerRequest {
-    string id = 1;
-    oneof customer {
-        PersonInfo person_info = 2;
-        OrganizationInfo organization_info = 3;
-    }
-}
-
-message UpdateCustomerResponse {
-    string id = 1;
-    oneof customer_info {
-        PersonInfo person_info = 2;
-        OrganizationInfo organization_info = 3;
-    }
-}
-
-message DeleteCustomerRequest {
-    string id = 1;
-}
-
-message DeleteCustomerResponse {
+message SetStateResponse {
     string msg = 1;
+}
+
+message Customer {
+    uint32 id = 1;
+    State state = 2;
+    oneof info {
+        PersonInfo person_info = 3;
+        OrganizationInfo organization_info = 4;
+    }
+
 }
 
 message PersonInfo {
@@ -66,7 +65,7 @@ message PersonInfo {
     string family_name = 2;
     string ssn = 3;
     string date_of_birth = 4;
-    CountryCode citizenship = 5;
+    string citizenship = 5;
 }
 
 message OrganizationInfo {
@@ -74,280 +73,12 @@ message OrganizationInfo {
     string form = 2;
     string legal_id = 3;
     string date_of_registration = 4;
-    CountryCode registration_country = 5;
+    string registration_country = 5;
 }
 
-message Address {
-    string street = 1;
-    string city = 2;
-    string postal_code = 3;
-    string country = 4;
-}
 
-message ContactInfo {
-    string value = 1;
-
-    enum ContactType {
-        OTHER = 0;
-        MOBILE = 1;
-	    PHONE = 2;
-	    EMAIL = 3;
-    }
-
-    ContactType type = 2;
-}
-
-message TaxInfo {
-    CountryCode tax_country = 1;
-    string tax_id = 2;
-}
-
-enum CountryCode {
-    UNKOWN = 0;   // Not set
-    ABW = 1;    // Aruba
-    AFG = 2;    // Afghanistan
-    AGO = 3;    // Angola
-    AIA = 4;    // Anguilla
-    ALA = 5;    // Åland Islands
-    ALB = 6;    // Albania
-    AND = 7;    // Andorra
-    ANT = 8;    // Netherlands Antilles
-    ARE = 9;    // United Arab Emirates
-    ARG = 10;    // Argentina
-    ARM = 11;    // Armenia
-    ASM = 12;    // American Samoa
-    ATA = 13;    // Antarctica
-    ATF = 14;    // French Southern Territories
-    ATG = 15;    // Antigua and Barbuda
-    AUS = 16;    // Australia
-    AUT = 17;    // Austria
-    AZE = 18;    // Azerbaijan
-    BDI = 19;    // Burundi
-    BEL = 20;    // Belgium
-    BEN = 21;    // Benin
-    BFA = 22;    // Burkina Faso
-    BGD = 23;    // Bangladesh
-    BGR = 24;    // Bulgaria
-    BHR = 25;    // Bahrain
-    BHS = 26;    // Bahamas
-    BIH = 27;    // Bosnia and Herzegovina
-    BLM = 28;    // Saint Barthélemy
-    BLR = 29;    // Belarus
-    BLZ = 30;    // Belize
-    BMU = 31;    // Bermuda
-    BOL = 32;    // Bolivia
-    BRA = 33;    // Brazil
-    BRB = 34;    // Barbados
-    BRN = 35;    // Brunei Darussalam
-    BTN = 36;    // Bhutan
-    BVT = 37;    // Bouvet Island
-    BWA = 38;    // Botswana
-    CAF = 39;    // Central African Republic
-    CAN = 40;    // Canada
-    CCK = 41;    // Cocos (Keeling) Islands
-    CHE = 42;    // Switzerland
-    CHL = 43;    // Chile
-    CHN = 44;    // China
-    CIV = 45;    // Côte d'Ivoire
-    CMR = 46;    // Cameroon
-    COD = 47;    // Congo, the Democratic Republic of the
-    COG = 48;    // Congo
-    COK = 49;    // Cook Islands
-    COL = 50;    // Colombia
-    COM = 51;    // Comoros
-    CPV = 52;    // Cape Verde
-    CRI = 53;    // Costa Rica
-    CUB = 54;    // Cuba
-    CXR = 55;    // Christmas Island
-    CYM = 56;    // Cayman Islands
-    CYP = 57;    // Cyprus
-    CZE = 58;    // Czechia
-    DEU = 59;    // Germany
-    DJI = 60;    // Djibouti
-    DMA = 61;    // Dominica
-    DNK = 62;    // Denmark
-    DOM = 63;    // Dominican Republic
-    DZA = 64;    // Algeria
-    ECU = 65;    // Ecuador
-    EGY = 66;    // Egypt
-    ERI = 67;    // Eritrea
-    ESH = 68;    // Western Sahara
-    ESP = 69;    // Spain
-    EST = 70;    // Estonia
-    ETH = 71;    // Ethiopia
-    FIN = 72;    // Finland
-    FJI = 73;    // Fiji
-    FLK = 74;    // Falkland Islands (Malvinas)
-    FRA = 75;    // France
-    FRO = 76;    // Faroe Islands
-    FSM = 77;    // Micronesia, Federated States of
-    GAB = 78;    // Gabon
-    GBR = 79;    // United Kingdom
-    GEO = 80;    // Georgia
-    GGY = 81;    // Guernsey
-    GHA = 82;    // Ghana
-    GIN = 83;    // Guinea
-    GIB = 84;    // Gibraltar
-    GLP = 85;    // Guadeloupe
-    GMB = 86;    // Gambia
-    GNB = 87;    // Guinea-Bissau
-    GNQ = 88;    // Equatorial Guinea
-    GRC = 89;    // Greece
-    GRD = 90;    // Grenada
-    GRL = 91;    // Greenland
-    GTM = 92;    // Guatemala
-    GUF = 93;    // French Guiana
-    GUM = 94;    // Guam
-    GUY = 95;    // Guyana
-    HKG = 96;    // Hong Kong
-    HMD = 97;    // Heard Island and McDonald Islands
-    HND = 98;    // Honduras
-    HRV = 99;    // Croatia
-    HTI = 100;    // Haiti
-    HUN = 101;    // Hungary
-    IDN = 102;    // Indonesia
-    IMN = 103;    // Isle of Man
-    IND = 104;    // India
-    IOT = 105;    // British Indian Ocean Territory
-    IRL = 106;    // Ireland
-    IRN = 107;    // Iran, Islamic Republic of
-    IRQ = 108;    // Iraq
-    ISL = 109;    // Iceland
-    ISR = 110;    // Israel
-    ITA = 111;    // Italy
-    JAM = 112;    // Jamaica
-    JEY = 113;    // Jersey
-    JOR = 114;    // Jordan
-    JPN = 115;    // Japan
-    KAZ = 116;    // Kazakhstan
-    KEN = 117;    // Kenya
-    KGZ = 118;    // Kyrgyzstan
-    KHM = 119;    // Cambodia
-    KIR = 120;    // Kiribati
-    KNA = 121;    // Saint Kitts and Nevis
-    KOR = 122;    // Korea, Republic of
-    KWT = 123;    // Kuwait
-    LAO = 124;    // Lao People's Democratic Republic
-    LBN = 125;    // Lebanon
-    LBR = 126;    // Liberia
-    LBY = 127;    // Libyan Arab Jamahiriya
-    LCA = 128;    // Saint Lucia
-    LIE = 129;    // Liechtenstein
-    LKA = 130;    // Sri Lanka
-    LSO = 131;    // Lesotho
-    LTU = 132;    // Lithuania
-    LUX = 133;    // Luxembourg
-    LVA = 134;    // Latvia
-    MAC = 135;    // Macao
-    MAF = 136;    // Saint Martin (French part)
-    MAR = 137;    // Morocco
-    MCO = 138;    // Monaco
-    MDA = 139;    // Moldova, Republic of
-    MDG = 140;    // Madagascar
-    MDV = 141;    // Maldives
-    MEX = 142;    // Mexico
-    MHL = 143;    // Marshall Islands
-    MKD = 144;    // Macedonia, the former Yugoslav Republic of
-    MLI = 145;    // Mali
-    MLT = 146;    // Malta
-    MMR = 147;    // Myanmar
-    MNE = 148;    // Montenegro
-    MNG = 149;    // Mongolia
-    MNP = 150;    // Northern Mariana Islands
-    MOZ = 151;    // Mozambique
-    MRT = 152;    // Mauritania
-    MSR = 153;    // Montserrat
-    MTQ = 154;    // Martinique
-    MUS = 155;    // Mauritius
-    MWI = 156;    // Malawi
-    MYS = 157;    // Malaysia
-    MYT = 158;    // Mayotte
-    NAM = 159;    // Namibia
-    NCL = 160;    // New Caledonia
-    NER = 161;    // Niger
-    NFK = 162;    // Norfolk Island
-    NGA = 163;    // Nigeria
-    NIC = 164;    // Nicaragua
-    NOR = 165;    // Norway
-    NIU = 166;    // Niue
-    NLD = 167;    // Netherlands
-    NPL = 168;    // Nepal
-    NRU = 169;    // Nauru
-    NZL = 170;    // New Zealand
-    OMN = 171;    // Oman
-    PAK = 172;    // Pakistan
-    PAN = 173;    // Panama
-    PCN = 174;    // Pitcairn
-    PER = 175;    // Peru
-    PHL = 176;    // Philippines
-    PLW = 177;    // Palau
-    PNG = 178;    // Papua New Guinea
-    POL = 179;    // Poland
-    PRI = 180;    // Puerto Rico
-    PRK = 181;    // Korea, Democratic People's Republic of
-    PRT = 182;    // Portugal
-    PRY = 183;    // Paraguay
-    PSE = 184;    // Palestinian Territory, Occupied
-    PYF = 185;    // French Polynesia
-    QAT = 186;    // Qatar
-    REU = 187;    // Réunion
-    ROU = 188;    // Romania
-    RUS = 189;    // Russian Federation
-    RWA = 190;    // Rwanda
-    SAU = 191;    // Saudi Arabia
-    SDN = 192;    // Sudan
-    SEN = 193;    // Senegal
-    SGP = 194;    // Singapore
-    SGS = 195;    // South Georgia and the South Sandwich Islands
-    SHN = 196;    // Saint Helena
-    SJM = 197;    // Svalbard and Jan Mayen
-    SLB = 198;    // Solomon Islands
-    SLE = 199;    // Sierra Leone
-    SLV = 200;    // El Salvador
-    SMR = 201;    // San Marino
-    SOM = 202;    // Somalia
-    SPM = 203;    // Saint Pierre and Miquelon
-    SRB = 204;    // Serbia
-    STP = 205;    // São Tomé and Príncipe
-    SUR = 206;    // Suriname
-    SVK = 207;    // Slovakia
-    SVN = 208;    // Slovenia
-    SWE = 209;    // Sweden
-    SWZ = 210;    // Swaziland
-    SYC = 211;    // Seychelles
-    SYR = 212;    // Syrian Arab Republic
-    TCA = 213;    // Turks and Caicos Islands
-    TCD = 214;    // Chad
-    TGO = 215;    // Togo
-    THA = 216;    // Thailand
-    TJK = 217;    // Tajikistan
-    TKL = 218;    // Tokelau
-    TKM = 219;    // Turkmenistan
-    TLS = 220;    // Timor-Leste
-    TON = 221;    // Tonga
-    TTO = 222;    // Trinidad and Tobago
-    TUN = 223;    // Tunisia
-    TUR = 224;    // Turkey
-    TUV = 225;    // Tuvalu
-    TWN = 226;    // Taiwan, Province of China
-    TZA = 227;    // Tanzania, United Republic of
-    UGA = 228;    // Uganda
-    UKR = 229;    // Ukraine
-    UMI = 230;    // United States Minor Outlying Islands
-    URY = 231;    // Uruguay
-    USA = 232;    // United States
-    UZB = 233;    // Uzbekistan
-    VAT = 234;    // Holy See (Vatican City State)
-    VCT = 235;    // Saint Vincent and the Grenadines
-    VEN = 236;    // Venezuela
-    VGB = 237;    // Virgin Islands, British
-    VIR = 238;    // Virgin Islands, U.S.
-    VNM = 239;    // Viet Nam
-    VUT = 240;    // Vanuatu
-    WLF = 241;    // Wallis and Futuna
-    WSM = 242;    // Samoa
-    YEM = 243;    // Yemen
-    ZAF = 244;    // South Africa
-    ZMB = 245;    // Zambia
-    ZWE = 246;    // Zimbabwe
+enum State {
+    PROSPECT = 0;
+    ACTIVE = 1;
+    PASSIVE = 2;
 }
