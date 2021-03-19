@@ -18,12 +18,14 @@ func NewValidator() *validator.Validate {
 	return v
 }
 
+// single unicode Letter or 2 to many unicode Letters, allowing - in the middle
 var personNameRegexp *regexp.Regexp = regexp.MustCompile(`^([\p{L}])$|^([\p{L}])([\p{L}-])*([\p{L}])$`)
 
 func ValidatePersonName(fl validator.FieldLevel) bool {
 	return personNameRegexp.MatchString(fl.Field().String())
 }
 
+// single unicode Letter,digit OR 2 to many unicode Letters, digits, allowing - & and space in the middle
 var orgNameRegexp *regexp.Regexp = regexp.MustCompile(`^([\p{L}\d])$|^([\p{L}\d])([\p{L}\d-& ])*([\p{L}\d])$`)
 
 func ValidateOrgName(fl validator.FieldLevel) bool {

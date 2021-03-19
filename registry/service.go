@@ -9,11 +9,10 @@ import (
 )
 
 var (
-	ErrNotFound        = errors.New("Not found")
-	ErrUnexpected      = errors.New("Unexpected error")
-	ErrUsedID          = errors.New("ID allready in use")
-	ErrConflict        = errors.New("Unique Data conflict")
-	ErrInputValidation = errors.New("Input validation failed")
+	ErrNotFound   = errors.New("Not found")
+	ErrValidation = errors.New("Input validation failed")
+	ErrExpected   = errors.New("Expected error")
+	ErrUnexpected = errors.New("Unexpected error")
 )
 
 func NewService(r Repo) Service {
@@ -54,7 +53,7 @@ func (svc *service) New(ctx context.Context, i customer.Info) (*customer.Custome
 	const op string = "registry.Service.New"
 
 	if err := svc.validate.Struct(i); err != nil {
-		return nil, errors.Mark(errors.Wrap(err, op), ErrInputValidation)
+		return nil, errors.Mark(errors.Wrap(err, op), ErrValidation)
 	}
 
 	c := customer.NewWithRandomID(i)
@@ -70,7 +69,7 @@ func (svc *service) UpdateInfo(ctx context.Context, id uint32, i customer.Info) 
 	const op string = "registry.Service.UpdateInfo"
 
 	if err := svc.validate.Struct(i); err != nil {
-		return nil, errors.Mark(errors.Wrap(err, op), ErrInputValidation)
+		return nil, errors.Mark(errors.Wrap(err, op), ErrValidation)
 	}
 
 	c, err := svc.repo.Get(ctx, id)
@@ -79,7 +78,7 @@ func (svc *service) UpdateInfo(ctx context.Context, id uint32, i customer.Info) 
 	}
 
 	if err := c.UpdateInfo(i); err != nil {
-		return nil, errors.Wrap(err, op)
+		return nil, errors.Mark(errors.Wrap(err, op), ErrExpected)
 	}
 
 	if err = svc.repo.Update(ctx, c); err != nil {
@@ -93,7 +92,7 @@ func (svc *service) SetState(ctx context.Context, id uint32, s customer.State) e
 	const op string = "registry.Service.SetState"
 
 	if err := svc.validate.Var(s, "min=1,max=3"); err != nil {
-		return errors.Mark(errors.Wrap(err, op), ErrInputValidation)
+		return errors.Mark(errors.Wrap(err, op), ErrValidation)
 	}
 
 	c, err := svc.repo.Get(ctx, id)

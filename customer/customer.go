@@ -4,14 +4,16 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/cockroachdb/errors"
+
+	"github.com/Azure/go-autorest/autorest/date"
+)
+
+var (
+	ErrTypeNotEqual = errors.New("Type not equal")
 )
 
 func New(id uint32, i Info) *Customer {
-	if i == nil {
-		panic("nil input for customer.New")
-	}
 	return &Customer{
 		ID:    id,
 		State: Prospect,
@@ -39,7 +41,7 @@ type Customer struct {
 func (c *Customer) UpdateInfo(i Info) error {
 
 	if c.Type() != i.Type() {
-		return errors.New("CustomerType not equal")
+		return ErrTypeNotEqual
 	}
 
 	c.Info = i
@@ -55,11 +57,11 @@ type PersonInfo struct {
 	GivenName   string    `validate:"person-name"`
 	FamilyName  string    `validate:"person-name"`
 	SSN         string    `validate:"required"`
-	DateOfBirth date.Date `validate:"required"`
+	DateOfBirth date.Date `validate:"required,before"`
 	Citizenship string    `validate:"required,iso3166_1_alpha2"`
 }
 
-func (pi PersonInfo) Type() CustomerType {
+func (pi *PersonInfo) Type() CustomerType {
 	return Private
 }
 
@@ -67,16 +69,12 @@ type OrganizationInfo struct {
 	Name                string    `validate:"org-name"`
 	Form                string    `validate:"required"`
 	LeagalID            string    `validate:"required"`
-	RegistrationDate    date.Date `validate:"required"`
+	RegistrationDate    date.Date `validate:"required,before"`
 	RegistrationCountry string    `validate:"required,iso3166_1_alpha2"`
 }
 
-func (oi OrganizationInfo) Type() CustomerType {
+func (oi *OrganizationInfo) Type() CustomerType {
 	return Organization
-}
-
-func (oi OrganizationInfo) Validate() error {
-	return nil
 }
 
 type CustomerType int32
